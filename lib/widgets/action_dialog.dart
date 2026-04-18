@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/task_model.dart';
+import '../models/todo_model.dart';
 
 class ActionDialog extends StatelessWidget {
-  final TaskModel task;
+  final TodoModel task;
 
   const ActionDialog({super.key, required this.task});
 
@@ -24,10 +24,7 @@ class ActionDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: task.backgroundColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF1E282A),
-                  width: 2,
-                ),
+                border: Border.all(color: const Color(0xFF1E282A), width: 2),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0xFF1E282A),
@@ -54,14 +51,6 @@ class ActionDialog extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          '${task.timeRange} ${task.date}',
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF1E282A).withOpacity(0.8),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -74,7 +63,7 @@ class ActionDialog extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Action Buttons panel (aligned to bottom)
           Positioned(
             bottom: -20,
@@ -84,10 +73,7 @@ class ActionDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF268C8C),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF1E282A),
-                  width: 2,
-                ),
+                border: Border.all(color: const Color(0xFF1E282A), width: 2),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0xFF1E282A),
@@ -139,10 +125,7 @@ class ActionDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF1E282A),
-            width: 2,
-          ),
+          border: Border.all(color: const Color(0xFF1E282A), width: 2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -158,7 +141,7 @@ class ActionDialog extends StatelessWidget {
             if (icon != null) ...[
               const SizedBox(width: 8),
               Icon(icon, color: textColor, size: 20),
-            ]
+            ],
           ],
         ),
       ),

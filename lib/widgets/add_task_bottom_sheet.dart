@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/task_model.dart';
+import 'package:todo_cubit/bloc/todo_cubit.dart';
+import '../models/todo_model.dart';
 
 class AddTaskBottomSheet extends StatefulWidget {
-  final TaskModel? initialTask;
+  final TodoModel? initialTask;
 
   const AddTaskBottomSheet({super.key, this.initialTask});
 
@@ -18,7 +20,9 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.initialTask?.title ?? '');
+    _titleController = TextEditingController(
+      text: widget.initialTask?.title ?? '',
+    );
   }
 
   @override
@@ -29,13 +33,21 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      final task = TaskModel(
+      final task = TodoModel(
+        id: widget.initialTask?.id ?? DateTime.now().toIso8601String(),
         title: _titleController.text.trim(),
-        timeRange: widget.initialTask?.timeRange ?? 'All day',
         date: widget.initialTask?.date ?? 'Today',
-        backgroundColor: widget.initialTask?.backgroundColor ?? const Color(0xFFB2F3DF), // Default mint
+        backgroundColor:
+            widget.initialTask?.backgroundColor ??
+            const Color(0xFFB2F3DF), // Default mint
         isDone: widget.initialTask?.isDone ?? false,
       );
+      //bloc handle add and update
+      if (widget.initialTask == null) {
+        BlocProvider.of<TodoCubit>(context).addTodo(task);
+      } else {
+        BlocProvider.of<TodoCubit>(context).updateTodo(task);
+      }
       Navigator.pop(context, task);
     }
   }

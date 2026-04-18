@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/task_model.dart';
+import 'package:todo_cubit/bloc/todo_cubit.dart';
+import '../models/todo_model.dart';
 import '../widgets/task_card.dart';
 import '../widgets/add_task_bottom_sheet.dart';
 
@@ -12,17 +14,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Use a local mutable list based on the mock data
-  List<TaskModel> _tasks = [];
-
   @override
   void initState() {
     super.initState();
-    _tasks = List.from(mockTasks);
   }
 
-  void _showAddTaskSheet(BuildContext context, {TaskModel? taskToEdit, int? editIndex}) async {
-    final result = await showModalBottomSheet<TaskModel>(
+  void _showAddTaskSheet(
+    BuildContext context, {
+    TodoModel? taskToEdit,
+    int? editIndex,
+  }) async {
+    final result = await showModalBottomSheet<TodoModel>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -30,23 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (result != null) {
-      setState(() {
-        if (editIndex != null) {
-          _tasks[editIndex] = result;
-        } else {
-          _tasks.add(result);
-        }
-      });
+      // The bottom sheet already handles adding/updating via Bloc
     }
   }
 
-  void _handleTaskAction(String action, int index, TaskModel task) {
+  void _handleTaskAction(String action, int index, TodoModel task) {
+    final todoCubit = BlocProvider.of<TodoCubit>(context);
     if (action == 'edit') {
       _showAddTaskSheet(context, taskToEdit: task, editIndex: index);
     } else if (action == 'done') {
-      setState(() {
-        _tasks.removeAt(index);
-      });
+      todoCubit.deleteTodo(task);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${task.title} completed!'),
@@ -65,48 +60,54 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             _buildHeader(context),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                itemCount: _tasks.length,
-                itemBuilder: (context, index) {
-                  final task = _tasks[index];
-                  // Added Dismissible tile to delete securely
-                  return Dismissible(
-                    key: Key(task.title + index.toString()),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      margin: const EdgeInsets.only(bottom: 16.0),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      alignment: Alignment.centerRight,
-                      child: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.white,
-                        size: 32,
-                      ),
+            BlocBuilder<TodoCubit, List<TodoModel>>(
+              builder: (context, todos) {
+                return Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
                     ),
-                    onDismissed: (direction) {
-                      setState(() {
-                        _tasks.removeAt(index);
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${task.title} deleted')),
+                    itemCount: todos.length,
+                    itemBuilder: (context, index) {
+                      final task = todos[index];
+                      // Added Dismissible tile to delete securely
+                      return Dismissible(
+                        key: Key(task.title + index.toString()),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.only(bottom: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.centerRight,
+                          child: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        onDismissed: (direction) {
+                          BlocProvider.of<TodoCubit>(context).deleteTodo(task);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${task.title} deleted')),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: TaskCard(
+                            task: task,
+                            onAction: (action) =>
+                                _handleTaskAction(action, index, task),
+                          ),
+                        ),
                       );
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: TaskCard(
-                        task: task,
-                        onAction: (action) => _handleTaskAction(action, index, task),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -114,9 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddTaskSheet(context),
         backgroundColor: const Color(0xFF1E282A),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -130,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           RichText(
             text: TextSpan(
-              text: 'Today ',
+              text: 'Todo List ',
               style: GoogleFonts.poppins(
                 color: const Color(0xFFFFD48F), // Yellow/sand color
                 fontSize: 24,
@@ -138,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               children: [
                 TextSpan(
-                  text: 'Mo - Jan 30',
+                  text: 'Keep Smile!',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 24,
@@ -148,10 +147,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () => _showAddTaskSheet(context),
-            icon: const Icon(Icons.add, color: Colors.white, size: 28),
-          ),
+          // IconButton(
+          //   onPressed: () => _showAddTaskSheet(context),
+          //   icon: const Icon(Icons.add, color: Colors.white, size: 28),
+          // ),
         ],
       ),
     );
