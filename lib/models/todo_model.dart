@@ -34,5 +34,27 @@ class TodoModel {
       iconAsset: iconAsset ?? this.iconAsset,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date,
+      'backgroundColor': backgroundColor.value,
+      'isDone': isDone,
+      'iconAsset': iconAsset,
+    };
+  }
+
+  factory TodoModel.fromJson(Map<String, dynamic> json) {
+    return TodoModel(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      date: json['date'] as String,
+      backgroundColor: Color(json['backgroundColor'] as int),
+      isDone: json['isDone'] as bool,
+      iconAsset: json['iconAsset'] as String,
+    );
+  }
 }
 
