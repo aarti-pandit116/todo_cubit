@@ -7,7 +7,13 @@ class TodoStorage {
   static const String _fileName = 'todos.json';
 
   Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
+    // getExternalStorageDirectory() provides a path that is usually visible in file managers
+    // (e.g., Android/data/com.package.name/files)
+    Directory? directory = await getExternalStorageDirectory();
+    
+    // Fallback to internal storage if external storage is not available (e.g. on iOS or web)
+    directory ??= await getApplicationDocumentsDirectory();
+    
     return directory.path;
   }
 
